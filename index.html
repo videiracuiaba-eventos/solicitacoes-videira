@@ -1,0 +1,184 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Solicitações Videira</title>
+<meta name="description" content="Solicitações de pagamento e de limite de cartão ao Departamento Financeiro da Igreja Videira.">
+<link rel="icon" href="favicon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&display=swap">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div class="brand"><div class="brand-in">
+  <img src="logo.png" alt="Logo da Igreja Videira" width="76" height="76">
+  <div class="brand-text"><p class="brand-name">Igreja Videira</p><p class="brand-sub">Uma Igreja de Vencedores</p></div>
+  <div class="who" id="who" hidden><span id="who-name"></span><button class="btn sm light" id="sair" type="button">Sair</button></div>
+</div></div>
+
+<main class="wrap">
+
+  <div id="carregando" class="empty">Carregando…</div>
+
+  <div id="sem-config" class="notice" hidden>
+    O site ainda não está ligado ao Firebase. Preencha o arquivo <b>firebase-config.js</b> com os dados do seu projeto, como explica o guia.
+  </div>
+
+  <!-- LOGIN -->
+  <section id="view-login" class="login" hidden>
+    <h1>Entrar</h1>
+    <p class="lead">Use o e-mail e a senha que o Departamento Financeiro cadastrou para você.</p>
+    <form id="form-login" novalidate>
+      <div class="field"><label for="login-email">E-mail</label><input id="login-email" type="email" autocomplete="username" required></div>
+      <div class="field"><label for="login-senha">Senha</label><input id="login-senha" type="password" autocomplete="current-password" required></div>
+      <div class="actions">
+        <button class="btn" type="submit" id="btn-entrar">Entrar</button>
+        <button class="link" type="button" id="esqueci">Esqueci minha senha</button>
+      </div>
+      <p id="login-msg" class="msg" role="status"></p>
+    </form>
+  </section>
+
+  <!-- SEM ACESSO -->
+  <section id="view-bloqueado" hidden>
+    <h1>Acesso não liberado</h1>
+    <p class="lead" id="bloqueado-msg">Seu login ainda não foi liberado pelo Departamento Financeiro. Fale com o financeiro para ativar seu acesso.</p>
+  </section>
+
+  <!-- APP -->
+  <section id="view-app" hidden>
+    <header class="page-head">
+      <div class="eyebrow">Departamento Financeiro</div>
+      <h1>Solicitações ao Financeiro</h1>
+      <p class="lead">Peça um pagamento ou um ajuste de limite do cartão corporativo e acompanhe a resposta por aqui.</p>
+    </header>
+
+    <nav class="tabs" role="tablist">
+      <button class="tab" role="tab" data-view="nova" aria-selected="true">Nova solicitação</button>
+      <button class="tab" role="tab" data-view="minhas" aria-selected="false">Minhas solicitações</button>
+      <button class="tab admin-only" role="tab" data-view="painel" aria-selected="false" hidden>Painel do financeiro</button>
+      <button class="tab admin-only" role="tab" data-view="pastores" aria-selected="false" hidden>Pastores</button>
+    </nav>
+
+    <!-- NOVA -->
+    <section id="view-nova" class="view">
+      <form id="form" novalidate>
+        <div class="type-pick" role="radiogroup" aria-label="Tipo de solicitação">
+          <label><input type="radio" name="tipo" id="tipo-pag" value="pagamento" checked><b>Pagamento</b><span>Conta, fornecedor, reembolso</span></label>
+          <label><input type="radio" name="tipo" id="tipo-lim" value="limite"><b>Limite de cartão</b><span>Aumento temporário ou fixo</span></label>
+        </div>
+
+        <fieldset>
+          <legend>Quem está pedindo</legend>
+          <div class="grid2">
+            <div class="field"><label for="solicitante">Nome do pastor</label><input id="solicitante" required></div>
+            <div class="field"><label for="predio">Congregação / prédio</label>
+              <select id="predio" required>
+                <option value="">Selecione</option>
+                <option>Videira das Américas</option><option>Várzea Grande</option><option>Pedra 90</option><option>Araés</option><option>Outro</option>
+              </select></div>
+          </div>
+          <div class="field"><label for="contato">Telefone / WhatsApp</label><input id="contato" inputmode="tel" placeholder="(65) 9 9999-9999"></div>
+        </fieldset>
+
+        <fieldset id="fs-pag">
+          <legend>Dados do pagamento</legend>
+          <div class="grid2">
+            <div class="field"><label for="favorecido">Favorecido</label><input id="favorecido" data-req="pagamento" placeholder="Quem vai receber"></div>
+            <div class="field"><label for="doc">CPF / CNPJ do favorecido</label><input id="doc" inputmode="numeric"></div>
+          </div>
+          <div class="grid2">
+            <div class="field"><label for="valor">Valor (R$)</label><input id="valor" class="money" data-req="pagamento" inputmode="decimal" placeholder="0,00"></div>
+            <div class="field"><label for="vencimento">Vencimento</label><input id="vencimento" type="date" data-req="pagamento"></div>
+          </div>
+          <div class="grid2">
+            <div class="field"><label for="forma">Forma de pagamento</label>
+              <select id="forma"><option>PIX</option><option>Boleto</option><option>Transferência</option><option>Reembolso</option></select></div>
+            <div class="field"><label for="categoria">Categoria</label>
+              <select id="categoria"><option>Manutenção do prédio</option><option>Contas de consumo</option><option>Eventos</option><option>Ministérios</option><option>Ação social</option><option>Material / suprimentos</option><option>Outros</option></select></div>
+          </div>
+          <div class="field"><label for="dadosPag">Chave PIX, linha digitável ou dados bancários</label><textarea id="dadosPag" class="short"></textarea></div>
+          <div class="field"><label for="finalidade">Para que é o pagamento</label><textarea id="finalidade" data-req="pagamento" placeholder="Ex.: conserto do ar-condicionado do salão principal"></textarea></div>
+          <div class="grid2">
+            <div class="field"><label for="nf">Nota fiscal</label><input id="nf" type="file" accept="image/*,application/pdf,.xml"><small>PDF, XML ou foto, até 8 MB. Se ainda não tiver, anexe depois em Minhas solicitações.</small></div>
+            <div class="field"><label for="anexo">Boleto ou orçamento (opcional)</label><input id="anexo" type="file" accept="image/*,application/pdf"><small>PDF ou foto, até 8 MB.</small></div>
+          </div>
+        </fieldset>
+
+        <fieldset id="fs-lim" hidden>
+          <legend>Dados do cartão</legend>
+          <div class="grid2">
+            <div class="field"><label for="titular">Titular do cartão</label><input id="titular" data-req="limite"></div>
+            <div class="field"><label for="final">Final do cartão</label><input id="final" class="money" inputmode="numeric" maxlength="4" placeholder="4 últimos dígitos"></div>
+          </div>
+          <div class="grid2">
+            <div class="field"><label for="limAtual">Limite atual (R$)</label><input id="limAtual" class="money" inputmode="decimal" placeholder="0,00"></div>
+            <div class="field"><label for="limNovo">Limite desejado (R$)</label><input id="limNovo" class="money" data-req="limite" inputmode="decimal" placeholder="0,00"></div>
+          </div>
+          <div class="grid2">
+            <div class="field"><label for="limTipo">Tipo de ajuste</label><select id="limTipo"><option>Temporário</option><option>Permanente</option></select></div>
+            <div class="field"><label for="limAte">Válido até</label><input id="limAte" type="date"><small>Só para ajuste temporário.</small></div>
+          </div>
+          <div class="field"><label for="justificativa">Justificativa</label><textarea id="justificativa" data-req="limite" placeholder="Ex.: compras do Encontro com Deus de novembro"></textarea></div>
+        </fieldset>
+
+        <div class="actions">
+          <button class="btn" type="submit" id="enviar">Enviar solicitação</button>
+          <span id="form-msg" class="msg" role="status"></span>
+        </div>
+      </form>
+    </section>
+
+    <!-- MINHAS -->
+    <section id="view-minhas" class="view" hidden>
+      <div id="minhas-list" class="list"></div>
+    </section>
+
+    <!-- PAINEL -->
+    <section id="view-painel" class="view" hidden>
+      <div class="summary" id="summary"></div>
+      <div class="filters" id="filters">
+        <button class="chip" data-f="pendente" aria-pressed="true">Pendentes</button>
+        <button class="chip" data-f="aprovado" aria-pressed="false">Aprovadas</button>
+        <button class="chip" data-f="concluido" aria-pressed="false">Concluídas</button>
+        <button class="chip" data-f="recusado" aria-pressed="false">Recusadas</button>
+        <button class="chip" data-f="todas" aria-pressed="false">Todas</button>
+      </div>
+      <div class="filters">
+        <select id="filtro-predio" aria-label="Filtrar por prédio" class="sel-sm">
+          <option value="">Todos os prédios</option>
+          <option>Videira das Américas</option><option>Várzea Grande</option><option>Pedra 90</option><option>Araés</option><option>Outro</option>
+        </select>
+      </div>
+      <div id="painel-list" class="list"></div>
+    </section>
+
+    <!-- PASTORES -->
+    <section id="view-pastores" class="view" hidden>
+      <form id="form-pastor" class="box" novalidate>
+        <h2>Cadastrar novo login</h2>
+        <div class="grid2">
+          <div class="field"><label for="p-nome">Nome</label><input id="p-nome" required></div>
+          <div class="field"><label for="p-email">E-mail</label><input id="p-email" type="email" required></div>
+        </div>
+        <div class="grid2">
+          <div class="field"><label for="p-predio">Congregação / prédio</label>
+            <select id="p-predio"><option value="">Selecione</option><option>Videira das Américas</option><option>Várzea Grande</option><option>Pedra 90</option><option>Araés</option><option>Outro</option></select></div>
+          <div class="field"><label for="p-papel">Tipo de acesso</label>
+            <select id="p-papel"><option value="pastor">Pastor (vê só as dele)</option><option value="admin">Financeiro (vê todas)</option></select></div>
+        </div>
+        <div class="field"><label for="p-senha">Senha provisória</label>
+          <div class="inline"><input id="p-senha" class="money" autocomplete="new-password"><button class="btn sm ghost" type="button" id="gerar-senha">Gerar</button></div>
+          <small>Mínimo de 6 caracteres. Passe para o pastor; ele pode trocar depois em "Esqueci minha senha".</small></div>
+        <div class="actions"><button class="btn" type="submit" id="criar-pastor">Criar login</button><span id="pastor-msg" class="msg" role="status"></span></div>
+      </form>
+      <div id="pastores-list" class="list"></div>
+    </section>
+  </section>
+</main>
+
+<script type="module" src="app.js"></script>
+</body>
+</html>
