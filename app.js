@@ -117,8 +117,21 @@ onAuthStateChanged(auth, async user => {
   if (perfil.nome) $("#solicitante").value = perfil.nome;
   if (perfil.predio) $("#predio").value = perfil.predio;
   tela("view-app");
+  mostrarAviso();
   iniciarDados();
   aba(ehAdmin ? "painel" : "nova");
+});
+
+/* ---------- aviso de boas-vindas (a cada acesso) ---------- */
+function mostrarAviso() {
+  const a = $("#aviso");
+  a.hidden = false;
+  document.body.style.overflow = "hidden";
+  $("#aviso-ok").focus();
+}
+$("#aviso-ok").addEventListener("click", () => {
+  $("#aviso").hidden = true;
+  document.body.style.overflow = "";
 });
 
 /* ---------- dados ao vivo ---------- */
