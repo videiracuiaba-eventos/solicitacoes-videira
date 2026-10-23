@@ -74,7 +74,7 @@
           <legend>Quem está pedindo</legend>
           <div class="grid2">
             <div class="field"><label for="solicitante">Nome do pastor</label><input id="solicitante" required></div>
-            <div class="field"><label for="predio">Congregação / prédio</label>
+            <div class="field"><label for="predio">Prédio</label>
               <select id="predio" required>
                 <option value="">Selecione</option>
                 <option>Videira das Américas</option><option>Várzea Grande</option><option>Pedra 90</option><option>Araés</option><option>Outro</option>
@@ -97,7 +97,7 @@
             <div class="field"><label for="forma">Forma de pagamento</label>
               <select id="forma"><option>PIX</option><option>Boleto</option><option>Transferência</option><option>Reembolso</option></select></div>
             <div class="field"><label for="categoria">Categoria</label>
-              <select id="categoria"><option>Manutenção do prédio</option><option>Contas de consumo</option><option>Eventos</option><option>Ministérios</option><option>Ação social</option><option>Material / suprimentos</option><option>Outros</option></select></div>
+              <select id="categoria"><option>Encontro</option><option>Eventos</option><option>Saldo de rede</option></select></div>
           </div>
           <div class="field"><label for="dadosPag">Chave PIX, linha digitável ou dados bancários</label><textarea id="dadosPag" class="short"></textarea></div>
           <div class="field"><label for="finalidade">Para que é o pagamento</label><textarea id="finalidade" data-req="pagamento" placeholder="Ex.: conserto do ar-condicionado do salão principal"></textarea></div>
@@ -109,19 +109,11 @@
 
         <fieldset id="fs-lim" hidden>
           <legend>Dados do cartão</legend>
+          <div class="field"><label for="nomeCartao">Nome do cartão</label><input id="nomeCartao" data-req="limite" placeholder="Nome impresso no cartão"></div>
           <div class="grid2">
-            <div class="field"><label for="titular">Titular do cartão</label><input id="titular" data-req="limite"></div>
-            <div class="field"><label for="final">Final do cartão</label><input id="final" class="money" inputmode="numeric" maxlength="4" placeholder="4 últimos dígitos"></div>
-          </div>
-          <div class="grid2">
-            <div class="field"><label for="limAtual">Limite atual (R$)</label><input id="limAtual" class="money" inputmode="decimal" placeholder="0,00"></div>
             <div class="field"><label for="limNovo">Limite desejado (R$)</label><input id="limNovo" class="money" data-req="limite" inputmode="decimal" placeholder="0,00"></div>
+            <div class="field"><label for="limCategoria">Categoria</label><select id="limCategoria"><option>Encontro</option><option>Eventos</option><option>Saldo de rede</option></select></div>
           </div>
-          <div class="grid2">
-            <div class="field"><label for="limTipo">Tipo de ajuste</label><select id="limTipo"><option>Temporário</option><option>Permanente</option></select></div>
-            <div class="field"><label for="limAte">Válido até</label><input id="limAte" type="date"><small>Só para ajuste temporário.</small></div>
-          </div>
-          <div class="field"><label for="justificativa">Justificativa</label><textarea id="justificativa" data-req="limite" placeholder="Ex.: compras do Encontro com Deus de novembro"></textarea></div>
         </fieldset>
 
         <fieldset id="fs-selfie">
@@ -183,7 +175,7 @@
           <div class="field"><label for="p-email">E-mail</label><input id="p-email" type="email" required></div>
         </div>
         <div class="grid2">
-          <div class="field"><label for="p-predio">Congregação / prédio</label>
+          <div class="field"><label for="p-predio">Prédio</label>
             <select id="p-predio"><option value="">Selecione</option><option>Videira das Américas</option><option>Várzea Grande</option><option>Pedra 90</option><option>Araés</option><option>Outro</option></select></div>
           <div class="field"><label for="p-papel">Tipo de acesso</label>
             <select id="p-papel"><option value="pastor">Pastor (vê só as dele)</option><option value="admin">Financeiro (vê todas)</option></select></div>

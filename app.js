@@ -238,8 +238,9 @@ function cartao(r, { admin = false, minha = false } = {}) {
     add("Favorecido", r.favorecido); add("CPF/CNPJ", r.doc); add("Vencimento", fdata(r.vencimento));
     add("Forma", r.forma); add("Categoria", r.categoria); add("Dados", r.dadosPag); add("Finalidade", r.finalidade);
   } else {
-    add("Titular", r.titular); add("Final do cartão", r.final); add("Limite atual", brl(r.limAtual));
-    add("Tipo", r.limTipo); if (r.limTipo === "Temporário") add("Válido até", fdata(r.limAte)); add("Justificativa", r.justificativa);
+    add("Nome do cartão", r.nomeCartao || r.titular); add("Categoria", r.categoria);
+    // campos de pedidos antigos, se existirem
+    add("Final do cartão", r.final); if (r.limAtual != null) add("Limite atual", brl(r.limAtual)); add("Justificativa", r.justificativa);
   }
   add("Enviado em", fdh(r.criadoEm));
   const dl = el("dl", {}, linhas);
@@ -433,7 +434,7 @@ $("#form").addEventListener("submit", async ev => {
   } else {
     const limNovo = parseBRL(v("#limNovo"));
     if (limNovo == null || limNovo <= 0) { setMsg(msg, "Informe o limite desejado, por exemplo 5.000,00.", "err"); $("#limNovo").focus(); return; }
-    Object.assign(r, { limNovo, limAtual: parseBRL(v("#limAtual")), titular: v("#titular"), final: v("#final").replace(/\D/g, "").slice(-4), limTipo: v("#limTipo"), limAte: v("#limAte"), justificativa: v("#justificativa") });
+    Object.assign(r, { limNovo, nomeCartao: v("#nomeCartao"), categoria: v("#limCategoria") });
   }
   const btn = $("#enviar"); btn.disabled = true; setMsg(msg, "Enviando…");
   try {
@@ -445,7 +446,7 @@ $("#form").addEventListener("submit", async ev => {
       if (an) r.anexo = await salvarArquivo(an);
     }
     await setDoc(doc(collection(db, "solicitacoes")), r);
-    ["#favorecido", "#doc", "#valor", "#vencimento", "#dadosPag", "#finalidade", "#nf", "#anexo", "#titular", "#final", "#limAtual", "#limNovo", "#limAte", "#justificativa"].forEach(s => $(s).value = "");
+    ["#favorecido", "#doc", "#valor", "#vencimento", "#dadosPag", "#finalidade", "#nf", "#anexo", "#nomeCartao", "#limNovo"].forEach(s => $(s).value = "");
     limparSelfie();
     setMsg(msg, `Solicitação ${r.protocolo} enviada. Acompanhe em Minhas solicitações.`, "ok");
   } catch (e) {
