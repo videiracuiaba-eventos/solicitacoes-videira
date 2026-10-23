@@ -124,6 +124,25 @@
           <div class="field"><label for="justificativa">Justificativa</label><textarea id="justificativa" data-req="limite" placeholder="Ex.: compras do Encontro com Deus de novembro"></textarea></div>
         </fieldset>
 
+        <fieldset id="fs-selfie">
+          <legend>Confirme que é você</legend>
+          <p class="hint">Toda solicitação precisa de uma selfie tirada agora, pela câmera. Ela vai junto com o pedido para o Departamento Financeiro.</p>
+          <div class="selfie">
+            <div class="selfie-frame">
+              <video id="selfie-video" playsinline muted hidden></video>
+              <img id="selfie-foto" alt="Sua selfie" hidden>
+              <div id="selfie-vazio" class="selfie-vazio">Câmera desligada</div>
+            </div>
+            <div class="selfie-acoes">
+              <button class="btn ghost" type="button" id="selfie-abrir">Abrir câmera</button>
+              <button class="btn" type="button" id="selfie-tirar" hidden>Tirar selfie</button>
+              <button class="btn ghost" type="button" id="selfie-refazer" hidden>Tirar outra</button>
+              <label class="btn ghost" id="selfie-alt" hidden>Usar a câmera do celular<input type="file" id="selfie-arquivo" accept="image/*" capture="user"></label>
+              <p id="selfie-msg" class="msg" role="status"></p>
+            </div>
+          </div>
+        </fieldset>
+
         <div class="actions">
           <button class="btn" type="submit" id="enviar">Enviar solicitação</button>
           <span id="form-msg" class="msg" role="status"></span>

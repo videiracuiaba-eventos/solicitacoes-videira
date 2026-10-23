@@ -81,6 +81,15 @@ Clique em **Gerar** para criar uma senha provisória e depois em **Criar login**
 
 **Outra pessoa do financeiro:** cadastre com o tipo de acesso **Financeiro (vê todas)**.
 
+## Selfie obrigatória
+
+Toda solicitação exige uma selfie tirada na hora, pela câmera do site.
+No primeiro uso, o navegador pergunta se o site pode usar a câmera. O pastor precisa tocar em **Permitir**.
+Se a câmera não abrir, aparece o botão **Usar a câmera do celular**. Ele só aceita foto tirada nos últimos minutos.
+No Painel do financeiro, cada pedido mostra a selfie com data e hora. Clique na foto para ampliar.
+
+A selfie é um dado pessoal. Avise os pastores que a foto é usada só para confirmar quem fez o pedido.
+
 ## Perguntas comuns
 
 **A chave do Firebase fica pública no GitHub. Tem problema?**

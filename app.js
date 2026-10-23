@@ -92,7 +92,7 @@ $("#esqueci").addEventListener("click", async () => {
     setMsg(msgLogin, "Se o e-mail estiver cadastrado, você vai receber um link para criar uma nova senha. Confira também o spam.", "ok");
   } catch { setMsg(msgLogin, "Não foi possível enviar o e-mail agora. Tente de novo.", "err"); }
 });
-$("#sair").addEventListener("click", () => signOut(auth));
+$("#sair").addEventListener("click", () => { try { limparSelfie(); } catch {} signOut(auth); });
 
 onAuthStateChanged(auth, async user => {
   desligar.forEach(f => f()); desligar = [];
@@ -197,6 +197,36 @@ function linkArquivo(info, rotulo) {
   return b;
 }
 
+const cacheImg = new Map();
+async function urlArquivo(info) {
+  if (cacheImg.has(info.id)) return cacheImg.get(info.id);
+  const p = (async () => {
+    const meta = (await getDoc(doc(db, "arquivos", info.id))).data();
+    let b64 = "";
+    for (let i = 0; i < meta.partes; i++) b64 += (await getDoc(doc(db, "arquivos", info.id, "partes", String(i)))).data().dados;
+    const bin = atob(b64), bytes = new Uint8Array(bin.length);
+    for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+    return URL.createObjectURL(new Blob([bytes], { type: meta.tipo }));
+  })();
+  cacheImg.set(info.id, p);
+  p.catch(() => cacheImg.delete(info.id));
+  return p;
+}
+function ampliar(src) {
+  const z = el("div", { class: "zoom", role: "dialog", "aria-label": "Selfie ampliada" }, el("img", { src, alt: "Selfie ampliada" }));
+  z.addEventListener("click", () => z.remove());
+  document.addEventListener("keydown", function esc(e) { if (e.key === "Escape") { z.remove(); document.removeEventListener("keydown", esc); } });
+  document.body.append(z);
+}
+function blocoSelfie(r) {
+  const s = r.selfie;
+  if (!s?.id) return el("div", { class: "proto", text: "Sem selfie (pedido enviado antes da exigência)" });
+  const img = el("img", { alt: "Selfie de " + (r.solicitante || "solicitante") });
+  urlArquivo(s).then(u => { img.src = u; img.addEventListener("click", () => ampliar(u)); }).catch(() => { img.alt = "Não foi possível carregar a selfie"; });
+  const modo = s.modo === "camera" ? "Tirada pela câmera do site" : "Tirada pela câmera do celular";
+  return el("div", { class: "req-selfie" }, img, el("div", { class: "proto", text: `Selfie · ${fdh(s.tiradaEm)} · ${modo}` }));
+}
+
 /* ---------- cartão de solicitação ---------- */
 function cartao(r, { admin = false, minha = false } = {}) {
   const st = r.status || "pendente";
@@ -222,6 +252,7 @@ function cartao(r, { admin = false, minha = false } = {}) {
       el("span", { class: "amount", text: brl(pag ? r.valor : r.limNovo) }),
       el("span", { class: "pill", text: STATUS[st] })),
     dl);
+  if (admin) c.append(blocoSelfie(r));
   if (r.obsFinanceiro) c.append(el("div", { class: "obs" }, el("b", { text: "Financeiro: " }), document.createTextNode(r.obsFinanceiro)));
   if (r.decididoEm && st !== "pendente") c.append(el("div", { class: "proto", text: "Atualizado em " + fdh(r.decididoEm) }));
   if (admin) c.append(caixaDecisao(r));
@@ -310,6 +341,70 @@ document.querySelectorAll('input[name="tipo"]').forEach(r => r.addEventListener(
   $("#fs-lim").hidden = tipoAtual() !== "limite";
 }));
 
+/* ---------- selfie ---------- */
+let selfieBlob = null, selfieModo = null, selfieEm = null, camera = null;
+const sv = $("#selfie-video"), sf = $("#selfie-foto"), sm = $("#selfie-msg");
+function pararCamera() { if (camera) { camera.getTracks().forEach(t => t.stop()); camera = null; } sv.srcObject = null; }
+function estadoSelfie(estado) {
+  sv.hidden = estado !== "camera"; sf.hidden = estado !== "foto"; $("#selfie-vazio").hidden = estado !== "vazio";
+  $("#selfie-abrir").hidden = estado !== "vazio";
+  $("#selfie-tirar").hidden = estado !== "camera";
+  $("#selfie-refazer").hidden = estado !== "foto";
+}
+function limparSelfie() {
+  pararCamera(); selfieBlob = null; selfieModo = null; selfieEm = null;
+  if (sf.src) URL.revokeObjectURL(sf.src); sf.removeAttribute("src");
+  $("#selfie-arquivo").value = ""; $("#selfie-alt").hidden = true; setMsg(sm, "");
+  estadoSelfie("vazio");
+}
+async function reduzir(fonte, w, h) {
+  const k = Math.min(1, 720 / Math.max(w, h));
+  const c = document.createElement("canvas");
+  c.width = Math.round(w * k); c.height = Math.round(h * k);
+  c.getContext("2d").drawImage(fonte, 0, 0, c.width, c.height);
+  return await new Promise(ok => c.toBlob(ok, "image/jpeg", 0.78));
+}
+function mostrarSelfie(blob, modo) {
+  selfieBlob = blob; selfieModo = modo; selfieEm = new Date().toISOString();
+  if (sf.src) URL.revokeObjectURL(sf.src);
+  sf.src = URL.createObjectURL(blob);
+  estadoSelfie("foto"); setMsg(sm, "Selfie pronta.", "ok");
+}
+$("#selfie-abrir").addEventListener("click", async () => {
+  setMsg(sm, "Abrindo a câmera…");
+  try {
+    camera = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "user", width: { ideal: 960 } }, audio: false });
+    sv.srcObject = camera; await sv.play();
+    estadoSelfie("camera"); setMsg(sm, "Enquadre seu rosto e toque em Tirar selfie.");
+  } catch (e) {
+    pararCamera();
+    $("#selfie-alt").hidden = false;
+    setMsg(sm, e && e.name === "NotAllowedError"
+      ? "A câmera foi bloqueada. Libere o acesso à câmera nas configurações do navegador, ou use o botão abaixo."
+      : "Não foi possível abrir a câmera aqui. Use o botão abaixo para tirar a selfie.", "err");
+  }
+});
+$("#selfie-tirar").addEventListener("click", async () => {
+  if (!sv.videoWidth) { setMsg(sm, "A câmera ainda está carregando. Tente de novo.", "err"); return; }
+  const c = document.createElement("canvas");
+  c.width = sv.videoWidth; c.height = sv.videoHeight;
+  const g = c.getContext("2d"); g.translate(c.width, 0); g.scale(-1, 1); g.drawImage(sv, 0, 0);
+  const blob = await reduzir(c, c.width, c.height);
+  pararCamera(); mostrarSelfie(blob, "camera");
+});
+$("#selfie-refazer").addEventListener("click", () => { limparSelfie(); $("#selfie-abrir").click(); });
+$("#selfie-arquivo").addEventListener("change", async e => {
+  const f = e.target.files[0]; if (!f) return;
+  try {
+    const bmp = await createImageBitmap(f);
+    if (Date.now() - f.lastModified > 5 * 60 * 1000) {
+      setMsg(sm, "Essa foto não é recente. Tire uma selfie agora.", "err"); e.target.value = ""; return;
+    }
+    mostrarSelfie(await reduzir(bmp, bmp.width, bmp.height), "arquivo");
+  } catch { setMsg(sm, "Não foi possível ler a foto. Tente de novo.", "err"); }
+});
+estadoSelfie("vazio");
+
 $("#form").addEventListener("submit", async ev => {
   ev.preventDefault();
   const msg = $("#form-msg");
@@ -318,6 +413,10 @@ $("#form").addEventListener("submit", async ev => {
   if (faltando.length) {
     setMsg(msg, "Preencha: " + faltando.map(i => document.querySelector(`label[for="${i.id}"]`).textContent).join(", ") + ".", "err");
     faltando[0].focus(); return;
+  }
+  if (!selfieBlob) {
+    setMsg(msg, "Tire a selfie em Confirme que é você antes de enviar.", "err");
+    $("#fs-selfie").scrollIntoView({ behavior: "smooth", block: "center" }); return;
   }
   const v = s => $(s).value.trim();
   const agora = new Date();
@@ -338,6 +437,8 @@ $("#form").addEventListener("submit", async ev => {
   }
   const btn = $("#enviar"); btn.disabled = true; setMsg(msg, "Enviando…");
   try {
+    const sInfo = await salvarArquivo(new File([selfieBlob], "selfie.jpg", { type: "image/jpeg" }));
+    r.selfie = { ...sInfo, tiradaEm: selfieEm, modo: selfieModo };
     if (tipo === "pagamento") {
       const nf = $("#nf").files[0], an = $("#anexo").files[0];
       if (nf) r.notaFiscal = await salvarArquivo(nf);
@@ -345,6 +446,7 @@ $("#form").addEventListener("submit", async ev => {
     }
     await setDoc(doc(collection(db, "solicitacoes")), r);
     ["#favorecido", "#doc", "#valor", "#vencimento", "#dadosPag", "#finalidade", "#nf", "#anexo", "#titular", "#final", "#limAtual", "#limNovo", "#limAte", "#justificativa"].forEach(s => $(s).value = "");
+    limparSelfie();
     setMsg(msg, `Solicitação ${r.protocolo} enviada. Acompanhe em Minhas solicitações.`, "ok");
   } catch (e) {
     setMsg(msg, e.code === "arquivo-grande" ? `O arquivo ${e.nome} passa de 8 MB. Envie um PDF menor ou uma foto.` : "Não foi possível enviar. Verifique a internet e tente de novo.", "err");
